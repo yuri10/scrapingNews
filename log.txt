@@ -1,0 +1,50 @@
+O primeiro passo foi ler a documentação do projeto e entender o objetivo do sistema. 
+
+O próximo passo foi escolher um tema, como eu sou um gamer assiduo, não tive outra opção a não ser escolher pelo tema: games.
+
+Após ter decidido a escolha do tema, precisava saber quais são os sites mais populares dessa categoria, então fiz uma breve pesquisa e levantei que os sites que seriam trabalhados foram: 
+IGN BRASIL
+x
+x
+
+após decidir os sites, dediquei-me a visualizar como seria o projeto final, quais tecnologias usaria e como tudo se integraria. Acabei optanto por usar a linguagem de programação Python, juntamente com a ferramenta Selenium, pois já havia tido experiencia com ambas as tecnologias. Sabia que em algum momento iria usar a biblioteca pandas para tratar os dados obtidos e salvar em formato csv, então já deixei ela importada também.
+
+Depois de visualizar a solução na minha mente, percebi que já estava utilizando muito do meu tempo arquitetando a solução, então decidi colocar a mão na massa e comecei a fazer os primeiros testes. Abri o meu Spyder, importei o Selenium e o pandas, coloquei a URL da IGN pra rodar e fazer a captura dos primeiros elementos.
+
+depois de especionar o codigo HTML e fazer alguns testes, descobri que o identificador unico para as noticias, utilizando css selector, é utilizando a palavra NEWS, "[class *= 'NEWS']", com este selector, fui capaz de selecionar apenas os elementos que continham as noticias.
+
+Com a referencia de todas as noticias visiveis na pagina, criei uma lista com todas as urls das noticias para usar posteriormente na minha raspagem. Abri a primeira url de teste e comecei a caçar no código fonte os elementos de titulo, sub titulo, nome do autor, data de publicação e quantidade de comentários. Todos foram bem faceis de conseguir retornar o elemento, com exceção da quantidade de comentarios, pois se encontrava em outro iframe e isso me deu uma dor de cabeça grande, mas depois de algumas horas pesquisando no stack overflow e pela inter webs, descobri como solucionar este problema. Caso alguém queira entender melhor como funciona o processo de iframes e trocar entre eles, vou deixar o link abaixo de onde aprendi:
+https://www.techbeamers.com/switch-between-iframes-selenium-python/
+
+Quando eu achava que tudo ja estava tranquilo, rodei o código mais uma vez e crashou, depois de um tempo verificando, percebi que o id e o nome do iframe que possui o elemento mudam toda vez que é aberta, ou seja, nao é um id unico (vai entender, né?!). Então precisava de uma nova estratégia para lidar com isso. Depois de um tempo fuçando, decidi criar um laço de repetição que procura em todos os iframes por um determinado elemento, coloquei um try catch e uns prints e vuala, tudo certo, consegui retornar o elemento com as quantidades dos comentarios, um sorriso se abriu no meu rosto e parti para a proxima etapa.
+
+Fiz uma bateria de testes automatizados pra ver se tava tudo ok, mas ao chegar na url da noticia descobri que os iframes ficam visiveis apenas quando rolamos a pagina até o fim, ou seja, eles são criados dinamicamente e não estão presentes logo quando entramos na pagina, o que me gerou mais algumas linhas de código para contornar essa situação. A solução que eu encontrei foi executar um comando no selenium para fazer o scroll down da pagina, porém, só um scroll down não bastava para aparecer o iframe dos comentarios, então precisava fazer duas vezes para que ficasse tudo redondinho.
+
+Até então, estava fazendo testes em apenas uma pagina de artigo, então decidi começar a fazer testes com todos os links que eu havia retornado em uma lista. Fiz um laço de repetição pra fazer a raspagem em cada link. Rodando o codigo percebi que quando havia um erro, o codigo parava, e não era isso que eu queria, entao coloquei dentro do laço, um tratamento de exceção, ou seja, caso aconteça um erro durante o scraping de uma pagina, o programa pula para o proximo link, deixando o programa muito mais tolerante a falhas. Tudo bem que eu poderia pedir para a pagina que deu erro rodar novamente, mas como uma pagina nao vai fazer falta em nossas analises, decidi por seguir em frente (provavelmente eu volte nessa etapa caso sobre tempo).
+
+Logo quando o driver abre a pagina da IGN, consegue retornar apenas alguns links das noticias, caso você queira mais, você precisa rolar a pagina pra baixo, pois a IGN trabalha exatamente como o Instagram, utilizando infinite scroll. Sabendo disso, bolei uma estrategia para pegar as noticias de pelo menos um mes inteiro, rolei a pagina pra baixo até chegar na data de um mes atras e percebi que a quantidade fica em torno de 250 noticias. Fiz um laço para pegar essa quantidade, entao o programa rola pra baixo enquanto a quantidade de links for menor que 250.
+
+Após fazer scraping nas paginas, armazenei os dados em uma lista e depois criei um dataframe com o pandas. Porém, quando fui escrever o dataframe em um csv, percebi que teria que pensar direitinho qual delimitador usar, pois estamos tratando de texto, e os pricipais separadores como ',', ';' e '|' estavam aparecendo nos textos do titulo. Resolvi escolher o pipe('|') como delimitador do meu csv, mas antes de escrever, precisava fazer uma varredura no dataframe e substituir tudo que era pipe por um traço('-'), dessa forma eu estou garantindo que não terei problemas com delimitador. Além disso, aproveitando que estava fazendo uma limpeza nos dados, formatei o campo da quantidade de comentários também, deixando apenas a quantidade em um formato int e sem a string comentário, isso será util mais pra frente quando fizermos as analises, sem contar que o armazenamento vai ser mais efeciente por ocupar menos espaço em disco.
+
+Fiz a escolha de salvar em um csv para poupar tempo e diminuir as dependencias do projeto, mas em um ambiente de produção, provavelmente um banco NoSQL como MongoDB ou até um SQL como MySQL seria melhor para estruturar o sistema. Caso o projeto precise ser escalado, sugeriria até pensar na possibilidade de utilizar um ecossistema Hadoop com o banco em um sistema de arquivos distribuidos (HDFS), utilizando HIVE e pySpark para fazer as consultas. Porém, botando o pé no chão, pois temos apenas alguns dias para entregar o projeto, vamos manter o csv.
+
+
+
+
+
+
+
+
+
+
+
+
+
+from selenium import webdriver
+driver = webdriver.Chrome('./chromedriver')
+driver.get('http://elegalix.allahabadhighcourt.in')
+driver.set_page_load_timeout(20)
+driver.maximize_window()
+driver.switch_to.frame(driver.find_element_by_name('sidebarmenu'))
+driver.find_element_by_xpath("//input[@value='Advanced']").click()
+driver.switch_to.default_content()
