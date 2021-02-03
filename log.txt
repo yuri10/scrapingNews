@@ -28,6 +28,10 @@ Após fazer scraping nas paginas, armazenei os dados em uma lista e depois criei
 
 Fiz a escolha de salvar em um csv para poupar tempo e diminuir as dependencias do projeto, mas em um ambiente de produção, provavelmente um banco NoSQL como MongoDB ou até um SQL como MySQL seria melhor para estruturar o sistema. Caso o projeto precise ser escalado, sugeriria até pensar na possibilidade de utilizar um ecossistema Hadoop com o banco em um sistema de arquivos distribuidos (HDFS), utilizando HIVE e pySpark para fazer as consultas. Porém, botando o pé no chão, pois temos apenas alguns dias para entregar o projeto, vamos manter o csv.
 
+Em relação a estrategia incremental de inserção de dados novos, em minhas experiencias, sempre pegava os dados novos e fazia um left join com a base para inserir apenas os dados que nao se encontram na base, porém, neste caso das raspagem dos artigos, seria muito custoso para o algoritmo fazer toda a raspagem e só no final verificar o que é novo pra base. Então decidi fazer uma função (returnOnlyNewLinks()) que antes de raspar os links, ele verifica na base quais já estão lá e me retorna apenas as URLs que não estão, fazendo com que o processo fique muito mais rápido e não desperdisse processamento. Depois de raspar apenas os artigos necessarios, o algoritmo faz um union (pd.concat()) entre os dados que ja estavam na base e os novos.
+
+
+
 
 
 
