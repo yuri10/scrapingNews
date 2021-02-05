@@ -6,43 +6,64 @@ Created on Mon Feb  1 22:58:03 2021
 """
 
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait #wait elements
-from selenium.webdriver.support import expected_conditions as EC #wait for iframe
+import functions as func
 import pandas as pd
-import time
-import re #regex para limpeza dos dados
-import unidecode
-from datetime import datetime #pegar dia e hora em que houve a extração
 
 
-def GetNewsTitle():
-    titulo_elemento = driver.find_element_by_css_selector('#news-title-image-div-15127 > div > div.hide-on-small-only > h1')
-    return titulo_elemento.text
-    
-def GetNewsSubtitle():
-    subtitulo_elemento = driver.find_element_by_css_selector('#news_content_15127 > div.news-content-header > div.time-line > div.sMessage > em')
-    return subtitulo_elemento.text
 
-def GetNewsAuthor():
-    autor_elemento = driver.find_element_by_css_selector('#news_content_15127 > div.news-content-header > div.time-line > div:nth-child(2) > a')
-    return autor_elemento.text
-
-def GetNewsdate():
-    data_elemento = driver.find_element_by_css_selector('#time_1')
-    return data_elemento.get_attribute('datetime')
-
+#logFile = open("C:\\Users\\yoliveira\\Desktop\\scrapingNews\\logs\\log_GameVicio.txt", 'w')
+print("Inicio da execucao \n")
 
 options = webdriver.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument("--disable-notifications")
+global driver
 driver = webdriver.Chrome("C:/chromedriver.exe", chrome_options = options)
+print("Driver iniciado com sucesso \n")
 
 driver.get('https://www.gamevicio.com/games/')
+print("Requisicao para o site gameVicio com sucesso \n")
 
-driver.maximize_window()
+#variavel que redireciona em alguns ifs do sistema
+page = 'GameVicio'
 
-actions = ActionChains(driver)
+#Pega os links das noticias da pagina 
+links = func.getListOfNewsLinksGameVicio(driver)
+print("Pegou a lista de links que serao raspados com sucesso \n")
+#Estrategia Incremental, pega apenas os links que nao foram adicionados ainda
+links = func.returnOnlyNewLinks(links, page)
 
-actions.move_to_element(btnLoadMorePages_element).perform()
+#cria um dicionario contendo os paths dos elementos que serao raspados
+css_selector_paths = {'title_path':"[class = 'hide-on-small-only'] > h1",
+                      'subTitle_path':"[class = 'sMessage'] > em",
+                      'author_path':"div.time-line > div:nth-child(2) > a",
+                      'date_path':"#time_1" }         
 
+
+#Roda duas vezes o scraping, uma pra todos e a segunda tentativa para aqueles que deram erros
+listDataNews, linkScrapedFailed = func.scrapingData(driver, links, css_selector_paths, page)
+print("Primeira tentativa de raspagem com sucesso \n")
+listDataNews2, linkScrapedFailed = func.scrapingData(driver, linkScrapedFailed, css_selector_paths, page)
+print("Segunda tentativa de raspagem com sucesso \n")
+
+
+#junta os dados da primeira execucao com a lista dos que falharam na primeira
+listDataNews += listDataNews2
+
+#tratamento e limpeza dos dados antes de armazenar na base de dados
+df_news = pd.DataFrame(listDataNews, columns = ['Title', 'SubTitle', 'Author',
+                                                'Date', 'nComments',
+                                                'DateExtraction','URL'])
+
+#Remove caracteres e deixa apenas numeros na coluna comentarios
+df_news = func.cleanColumnComments(df_news)
+#substitui o pipe da coluna titulo e subTitulo para que nao interfira no delimitador do csv
+df_news = func.replacePipe(df_news)
+
+#mode = 'a' faz a inserção ser incremental, colocando apenas os dados novos, sem sobreescrever o csv
+df_news.to_csv('C:\\Users\\yoliveira\\Desktop\\scrapingNews\\NewsGameVicio.csv', mode = 'a', sep = '|', index = False, header=False)
+
+#logFile.close()
+driver.close()
+print("Fim do programa GameVicio")
 
