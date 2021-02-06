@@ -12,6 +12,7 @@ import time
 import re #regex para limpeza dos dados
 import unidecode
 import sys
+from pymongo import MongoClient
 
 from datetime import datetime #pegar dia e hora em que houve a extração
 from selenium.webdriver.common.action_chains import ActionChains
@@ -112,7 +113,7 @@ def getCountComments(driver):
     driver.switch_to.default_content()
     return countComments
 
-def scrapingData(driver, links, css_selector_paths, page):
+def scrapingData(driver, links, css_selector_paths, PAGE):
     
     #cria uma lista vazia que recebera uma lista de dados a cada iteração
     listDataNews = []
@@ -143,11 +144,11 @@ def scrapingData(driver, links, css_selector_paths, page):
             newsData.append(author)
             print("Raspou o Autor com sucesso \n")
             
-            print("page = " + page)
+            print("page = " + PAGE)
             #raspa e adiciona a data do artigo
-            if page == 'IGN' or page == 'Adrenaline':
+            if PAGE == 'news_ign' or PAGE == 'news_adrenaline':
                 date = driver.find_element_by_css_selector(css_selector_paths['date_path']).text
-            elif page == 'GameVicio':
+            elif PAGE == 'news_gameVicio':
                 print("entrou no page GameVicio")
                 date = driver.find_element_by_css_selector(css_selector_paths['date_path']).get_attribute('title')
             
@@ -178,6 +179,25 @@ def scrapingData(driver, links, css_selector_paths, page):
             
     return listDataNews, linkScrapedFailed
 
+def returnOnlyNewLinks(links, PAGE):
+    
+    #conecta com a base de dados na nuvem
+    client = MongoClient('mongodb+srv://test:test@scrapingnews.uvlhs.mongodb.net/scraping_news?retryWrites=true&w=majority')
+    
+    urls_base = []
+    #retorna lista com todos os links na base
+    for url in client['scraping_news'][PAGE].find({},{ "URL":1 , "_id":0}):
+      urls_base.append(url['URL'])
+    
+    linksToScrap = []
+    #percorra os links novos e verifica quais nao estao na base de dados
+    for link in links:
+        if link not in urls_base:
+            linksToScrap.append(link)
+    
+    return linksToScrap
+
+'''
 def returnOnlyNewLinks(links, page):
 
     if page == 'IGN':
@@ -195,7 +215,7 @@ def returnOnlyNewLinks(links, page):
         if link not in list_url:
             linksToScrap.append(link)
     return linksToScrap
-
+'''
 def cleanColumnComments(df_news):
     #Remove caracteres e deixa apenas numeros na coluna comentarios
     df_news['nComments'] = df_news.nComments.apply(lambda x: unidecode.unidecode(x)) #tira acentuacao
@@ -209,3 +229,9 @@ def replacePipe(df_news):
     df_news['SubTitle'] = df_news.SubTitle.apply(lambda x: x.replace('|', '-'))
     df_news['DateExtraction'] = df_news.DateExtraction.apply(lambda x: x.replace('|', '-'))
     return df_news
+
+def insertDataIntoMongo(data, PAGE):
+    client = MongoClient('mongodb+srv://test:test@scrapingnews.uvlhs.mongodb.net/scraping_news?retryWrites=true&w=majority')
+    col = client['scraping_news'][PAGE]
+    col.insert_many(data)
+    
