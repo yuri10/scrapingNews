@@ -21,21 +21,23 @@ def getListOfNewsLinksAdrenaline(driver):
     #caminho unico para as noticias utilizando css selector
     news_path = "article.post-h > div.row > div:nth-child(2) > a"
     links = []
-    i = 0
+    i = 1
     #Quantidade de noticias
-    while len(links) < 20:
+    while len(links) < 50:
         #encontra apenas os elementos que sao noticias
         elements = driver.find_elements_by_css_selector(news_path)
         #retorna os links dos elementos utilizando list comprehension 
-        links = [element.get_attribute('href') for element in elements]
+        links_current_page = [element.get_attribute('href') for element in elements]
         #print("Iteracao: " + str(i))
         #print("Quantidade de links: " + str(len(links)))
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         
-        driver.get(driver.current_url[:-1] + str(i))
-        
+        links += links_current_page
+        print("pagina i: " + str(i))
+        print("quantidade links: " + str(len(links)))
         time.sleep(1)
         i += 1
+        driver.get(driver.current_url[:-1] + str(i))
         
     return links
 
@@ -46,7 +48,7 @@ def getListOfNewsLinksGameVicio(driver):
     links = []
     #i = 0
     #Quantidade de noticias
-    while len(links) < 20:
+    while len(links) < 50:
         #encontra apenas os elementos que sao noticias
         elements = driver.find_elements_by_css_selector(news_path)
         #retorna os links dos elementos utilizando list comprehension 
@@ -70,8 +72,9 @@ def getListOfNewsLinksIGN(driver):
     news_path = "[class *= 'NEWS']"
     links = []
     #i = 0
-    #Quantidade de noticias
-    while len(links) < 20:
+    #Enquanto a quantidade links capturados for menor do que a quantidade
+    # definida, role a pagina pra baixo para carregar mais links
+    while len(links) < 50:
         #encontra apenas os elementos que sao noticias
         elements = driver.find_elements_by_css_selector(news_path)
         #retorna os links dos elementos utilizando list comprehension 
@@ -79,6 +82,7 @@ def getListOfNewsLinksIGN(driver):
         #print("Iteracao: " + str(i))
         #print("Quantidade de links: " + str(len(links)))
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        print("rolando a pagina da ign pra baixo")
         time.sleep(1)
         #i += 1
         

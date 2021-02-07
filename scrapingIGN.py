@@ -15,6 +15,7 @@ os.chdir('C:\\Users\\yoliveira\\Desktop\\scrapingNews')
 options = webdriver.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument("--disable-notifications")
+options.add_argument("--headless")
 driver = webdriver.Chrome("C:/chromedriver.exe", chrome_options = options)
 print("Driver iniciado com sucesso \n")
 

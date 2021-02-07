@@ -15,7 +15,7 @@ print("Inicio da execucao \n")
 options = webdriver.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument("--disable-notifications")
-global driver
+options.add_argument("--headless")
 driver = webdriver.Chrome("C:/chromedriver.exe", chrome_options = options)
 print("Driver iniciado com sucesso \n")
 
@@ -71,6 +71,7 @@ if len(listDataNews) > 0:
     
     #Insere novas linhas no MongoDB
     func.insertDataIntoMongo(data, PAGE)
+    print("inseriu no banco de dados")
 else:
     print("Nao existem dados para serem inseridos na base!")
 
