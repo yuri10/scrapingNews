@@ -25,7 +25,7 @@ def getListOfNewsLinksAdrenaline(driver):
     links = []
     i = 1
     #Quantidade de noticias
-    while len(links) < 50:
+    while len(links) < 150:
         #encontra apenas os elementos que sao noticias
         elements = driver.find_elements_by_css_selector(news_path)
         #retorna os links dos elementos utilizando list comprehension 
@@ -41,7 +41,7 @@ def getListOfNewsLinksAdrenaline(driver):
         driver.get(driver.current_url[:-1] + str(i))
         time.sleep(3)
         
-    return links
+    return links, driver
 
 
 def getListOfNewsLinksGameVicio(driver):
@@ -69,7 +69,7 @@ def getListOfNewsLinksGameVicio(driver):
         time.sleep(2)
         #i += 1
         
-    return links
+    return links, driver
 
 def getListOfNewsLinksIGN(driver):
     time.sleep(5)
@@ -91,7 +91,7 @@ def getListOfNewsLinksIGN(driver):
         time.sleep(3)
         #i += 1
         
-    return links
+    return links, driver
 
 def getCountComments(driver):
     time.sleep(5)
@@ -121,7 +121,7 @@ def getCountComments(driver):
         #print("\n")
     
     driver.switch_to.default_content()
-    return countComments
+    return countComments, driver
 
 def scrapingData(driver, links, css_selector_paths, PAGE):
     
@@ -131,8 +131,11 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
     #Entra em cada uma das paginas para fazer a raspagem
     for link in links:
         try:
+            print('Da um get no link')
             driver.get(link)
+            print('linha depois do link')
             time.sleep(2)
+            print('Link que esta sendo raspado: ' + link)
             
             #lista que contem os dados extraidos de uma pagina
             newsData = []
@@ -157,7 +160,7 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             newsData.append(author)
             print("Raspou o Autor com sucesso \n")
             
-            print("page = " + PAGE)
+            
             #raspa e adiciona a data do artigo
             if PAGE == 'news_ign' or PAGE == 'news_adrenaline':
                 #date = driver.find_element_by_css_selector(css_selector_paths['date_path']).text
@@ -170,7 +173,7 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             print("Raspou a data do artigo com sucesso \n")
             
             #raspa e adiciona a quantidade de comentarios a lista
-            nComments = getCountComments(driver)
+            nComments, driver = getCountComments(driver)
             newsData.append(nComments)
             print("Raspou a quantidade de comentarios com sucesso \n")
             
@@ -190,8 +193,9 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             print("link: " + link)
             print("Erro inesperado, armazena link que deu errado e pula para a proxima noticia")
             linkScrapedFailed.append(link)
+            continue
             
-    return listDataNews, linkScrapedFailed
+    return listDataNews, linkScrapedFailed, driver
 
 def returnOnlyNewLinks(links, PAGE):
     

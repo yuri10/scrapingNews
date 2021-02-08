@@ -5,21 +5,22 @@ Created on Mon Feb  1 22:58:03 2021
 @author: yoliveira
 """
 
-from selenium import webdriver
+
 import functions as func
 import pandas as pd
 
-def mainAdrenaline():
+
+def mainAdrenaline(driver):
     #logFile = open("C:\\Users\\yoliveira\\Desktop\\scrapingNews\\logs\\log_GameVicio.txt", 'w')
     print("Inicio da execucao \n")
-    
+    """
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
     options.add_argument("--disable-notifications")
     options.add_argument("--headless")
-    driver = webdriver.Chrome("C:/chromedriver.exe", chrome_options = options)
+    driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
     print("Driver iniciado com sucesso \n")
-    
+    """
     driver.get('https://adrenaline.com.br/noticias/pesquisa/todas/games/pagina/1')
     print("Requisicao para o site Adrenaline com sucesso \n")
     
@@ -27,14 +28,17 @@ def mainAdrenaline():
     PAGE = 'news_adrenaline'
     
     #Pega os links das noticias da pagina 
-    links = func.getListOfNewsLinksAdrenaline(driver)
+    links, driver = func.getListOfNewsLinksAdrenaline(driver)
     print("Pegou a lista de links que serao raspados com sucesso \n")
     #Estrategia Incremental, pega apenas os links que nao foram adicionados ainda
     links = func.returnOnlyNewLinks(links, PAGE)
+
+    print("Quantidade de links novos que nao existem na base: " + str(len(links)))
     
     #Faz scraping de 5 links por execucao.
     if len(links) > 5:
         links = links[0:5]
+    print("Quantidade de links que serao raspados nessa execucao: " + str(len(links)))
     
     #cria um dicionario contendo os paths dos elementos que serao raspados
     css_selector_paths = {'title_path':"[class = 'news__title'] > h1",
@@ -44,11 +48,10 @@ def mainAdrenaline():
     
     
     #Roda duas vezes o scraping, uma pra todos e a segunda tentativa para aqueles que deram erros
-    listDataNews, linkScrapedFailed = func.scrapingData(driver, links, css_selector_paths, PAGE)
+    listDataNews, linkScrapedFailed, driver = func.scrapingData(driver, links, css_selector_paths, PAGE)
     print("Primeira tentativa de raspagem com sucesso \n")
-    listDataNews2, linkScrapedFailed = func.scrapingData(driver, linkScrapedFailed, css_selector_paths, PAGE)
+    listDataNews2, linkScrapedFailed, driver = func.scrapingData(driver, linkScrapedFailed, css_selector_paths, PAGE)
     print("Segunda tentativa de raspagem com sucesso \n")
-    
     
     #junta os dados da primeira execucao com a lista dos que falharam na primeira
     listDataNews += listDataNews2
@@ -77,6 +80,7 @@ def mainAdrenaline():
         print("Nao existem dados para serem inseridos na base!")
     
     #logFile.close()
-    driver.close()
+    #driver.close()
     print("Fim do programa Adrenaline")
+    return driver
 
