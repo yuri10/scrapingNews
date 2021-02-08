@@ -6,6 +6,7 @@ Created on Wed Feb  3 20:19:16 2021
 """
 
 from selenium.webdriver.support.ui import WebDriverWait #wait elements
+from selenium.webdriver.common.by import By # 
 from selenium.webdriver.support import expected_conditions as EC #wait for iframe
 import pandas as pd
 import time
@@ -18,6 +19,7 @@ from datetime import datetime #pegar dia e hora em que houve a extração
 from selenium.webdriver.common.action_chains import ActionChains
 
 def getListOfNewsLinksAdrenaline(driver):
+    time.sleep(5)
     #caminho unico para as noticias utilizando css selector
     news_path = "article.post-h > div.row > div:nth-child(2) > a"
     links = []
@@ -35,14 +37,15 @@ def getListOfNewsLinksAdrenaline(driver):
         links += links_current_page
         print("pagina i: " + str(i))
         print("quantidade links: " + str(len(links)))
-        time.sleep(1)
         i += 1
         driver.get(driver.current_url[:-1] + str(i))
+        time.sleep(3)
         
     return links
 
 
 def getListOfNewsLinksGameVicio(driver):
+    time.sleep(5)
     #caminho unico para as noticias utilizando css selector
     news_path = "[class *= 'news-list'] > div > div > a:nth-child(1)"
     links = []
@@ -58,16 +61,18 @@ def getListOfNewsLinksGameVicio(driver):
 
         #Procura e clicka no botao para exibir mais links para ser raspado
         actions = ActionChains(driver)
-        btnLoadMorePages_element = driver.find_element_by_css_selector('#news-list-bt') 
+        #btnLoadMorePages_element = driver.find_element_by_css_selector('#news-list-bt') 
+        btnLoadMorePages_element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#news-list-bt')))
         actions.move_to_element(btnLoadMorePages_element).perform()
         btnLoadMorePages_element.click()
 
-        time.sleep(1)
+        time.sleep(2)
         #i += 1
         
     return links
 
 def getListOfNewsLinksIGN(driver):
+    time.sleep(5)
     #caminho unico para as noticias utilizando css selector
     news_path = "[class *= 'NEWS']"
     links = []
@@ -83,16 +88,17 @@ def getListOfNewsLinksIGN(driver):
         #print("Quantidade de links: " + str(len(links)))
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         print("rolando a pagina da ign pra baixo")
-        time.sleep(1)
+        time.sleep(3)
         #i += 1
         
     return links
 
 def getCountComments(driver):
+    time.sleep(5)
     #Rola a pagina pra baixo para que o iframe dos comentarios seja gerado
     for i in range(3):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(3)
+        time.sleep(2)
     
     totalFrames = driver.find_elements_by_tag_name("iframe")
     countComments_path = "[class = 'publisher-nav-color'] > [class = 'comment-count']"
@@ -134,27 +140,31 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             #pega as informacoes do artigo
             
             #raspa e adiciona o Titulo do artigo
-            title = driver.find_element_by_css_selector(css_selector_paths['title_path']).text
+            #title = driver.find_element_by_css_selector(css_selector_paths['title_path']).text
+            title = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['title_path']))).text
             newsData.append(title)
             print("Raspou o titulo com sucesso \n")
             
             #raspa e adiciona o SubTitulo do artigo
-            subTitle = driver.find_element_by_css_selector(css_selector_paths['subTitle_path']).text
+            #subTitle = driver.find_element_by_css_selector(css_selector_paths['subTitle_path']).text
+            subTitle = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['subTitle_path']))).text
             newsData.append(subTitle)
             print("Raspou o SubTitulo com sucesso \n")
             
             #raspa e adiciona o Autor do artigo
-            author = driver.find_element_by_css_selector(css_selector_paths['author_path']).text
+            #author = driver.find_element_by_css_selector(css_selector_paths['author_path']).text
+            author = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['author_path']))).text
             newsData.append(author)
             print("Raspou o Autor com sucesso \n")
             
             print("page = " + PAGE)
             #raspa e adiciona a data do artigo
             if PAGE == 'news_ign' or PAGE == 'news_adrenaline':
-                date = driver.find_element_by_css_selector(css_selector_paths['date_path']).text
+                #date = driver.find_element_by_css_selector(css_selector_paths['date_path']).text
+                date = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['date_path']))).text
             elif PAGE == 'news_gameVicio':
-                print("entrou no page GameVicio")
-                date = driver.find_element_by_css_selector(css_selector_paths['date_path']).get_attribute('title')
+                #date = driver.find_element_by_css_selector(css_selector_paths['date_path']).get_attribute('title')
+                date = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['date_path']))).get_attribute('title')
             
             newsData.append(date)
             print("Raspou a data do artigo com sucesso \n")
