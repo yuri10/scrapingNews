@@ -40,7 +40,7 @@ def mainGameVicio(driver):
     print("Quantidade de links que serao raspados nessa execucao: " + str(len(links)))
 
     #cria um dicionario contendo os paths dos elementos que serao raspados
-    css_selector_paths = {'title_path':"[class = 'hide-on-small-only'] > h1",
+    css_selector_paths = {'title_path':"div.news-title-with-image",
                           'subTitle_path':"[class = 'sMessage'] > em",
                           'author_path':"div.time-line > div:nth-child(2) > a",
                           'date_path':"#time_1" }         

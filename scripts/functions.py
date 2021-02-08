@@ -130,6 +130,7 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
     linkScrapedFailed = []
     #Entra em cada uma das paginas para fazer a raspagem
     for link in links:
+        time.sleep(5)
         try:
             print('Da um get no link')
             driver.get(link)
@@ -144,10 +145,13 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             
             #raspa e adiciona o Titulo do artigo
             #title = driver.find_element_by_css_selector(css_selector_paths['title_path']).text
-            title = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['title_path']))).text
+            if PAGE == 'news_gameVicio':
+                title = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['title_path']))).get_attribute('title')
+            else:
+                title = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['title_path']))).text
             newsData.append(title)
             print("Raspou o titulo com sucesso \n")
-            
+                
             #raspa e adiciona o SubTitulo do artigo
             #subTitle = driver.find_element_by_css_selector(css_selector_paths['subTitle_path']).text
             subTitle = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['subTitle_path']))).text
@@ -192,8 +196,7 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
         except:
             print("link: " + link)
             print("Erro inesperado, armazena link que deu errado e pula para a proxima noticia")
-            linkScrapedFailed.append(link)
-            continue
+            linkScrapedFailed.append(link)       
             
     return listDataNews, linkScrapedFailed, driver
 

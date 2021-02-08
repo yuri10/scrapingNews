@@ -28,9 +28,11 @@ options.add_argument("--headless")
 driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
 print("Driver iniciado com sucesso \n")
 
+
 print("Rodando Adrenaline")
 driver = scrapingAdrenaline.mainAdrenaline(driver)
 print("Finalizando Adrenaline")
+
 
 #driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
 print("Rodando GameVicio")
