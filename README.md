@@ -1,8 +1,8 @@
 # scrapingNews
 
-Este projeto utiliza dois containers para fazer a raspagem das noticias. O primeiro é uma imagem do selenium-chrome e o outro é onde o script de scraping roda de fato. Neste segundo container, foi necessario instalar as bibliotecas: pandas(FROM amancevice/pandas), selenium(conexao remote), pymongo(Banco de Dados) e unidecode(tratamento nos dados).
+Este projeto utiliza dois containers para fazer a raspagem das noticias. O primeiro é uma imagem do selenium-chrome e o outro é onde o script de scraping roda de fato. Neste segundo container, foi necessário instalar as bibliotecas: pandas(FROM amancevice/pandas), selenium(conexao remote), pymongo(Banco de Dados) e unidecode(tratamento nos dados).
 
-Estou com planos, para futuras atualizacoes, de fazer um docker compose com os dois containers, pois diminuiria bastante o trabalho de executar o script. Entretanto, ja fiquei muito feliz de ter conseguido colocar minha aplicacao dentro de um docker e fazer se comunicar com um banco na nuvem e outro container local, foi uma experiência incrível.
+Estou com planos de, em futuras atualizacoes, fazer um docker compose com os dois containers, pois diminuiria bastante o trabalho de executar o script. Entretanto, já fiquei muito feliz de ter conseguido colocar minha aplicação dentro de um docker e fazer se comunicar com um banco na nuvem e outro container local, foi uma experiência incrível.
 
 * Passos para executar o projeto:
 
@@ -30,22 +30,22 @@ $ sudo docker inspect selenium-3.141.59
 "IPAddress": "172.18.0.2"
 ~~~
 
-5. Clone este repositorio do git
+5. Clone este repositório do git
 ~~~
 $ git clone https://github.com/yuri10/scrapingNews.git
 ~~~
 
-6. Abre o arquivo app.py (na pasta /scripts) e coloca o ip do inspect na variavel e salve o script.
+6. Abre o arquivo app.py (na pasta /scripts) e coloca o ip do inspect na variável e salve o script.
 ~~~
 ip_docker_inspect_selenium = "172.18.0.2"
 ~~~
 
-7. Na raiz do diretorio clonado do git, builde o dockerfile do repositorio
+7. Na raiz do diretorio clonado do git, builde o dockerfile do repositório
 ~~~
 $ sudo docker build -t scraping-news .
 ~~~~
 
-8. Roda o container do projeto
+8. Rode o container do projeto
 ~~~
 $ sudo docker run --network="selenium-app" -e PYTHONUNBUFFERED=1 scraping-news
 ~~~
