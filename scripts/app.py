@@ -33,13 +33,10 @@ print("Rodando Adrenaline")
 driver = scrapingAdrenaline.mainAdrenaline(driver)
 print("Finalizando Adrenaline")
 
-
-#driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
 print("Rodando GameVicio")
 driver = scrapingGameVicio.mainGameVicio(driver)
 print("Finalizando GameVicio")
 
-#driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
 print("Rodando IGN")
 driver = scrapingIGN.mainIGN(driver)
 print("Finalizando IGN")

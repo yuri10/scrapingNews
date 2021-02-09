@@ -8,36 +8,36 @@ Created on Wed Feb  3 20:19:16 2021
 from selenium.webdriver.support.ui import WebDriverWait #wait elements
 from selenium.webdriver.common.by import By # 
 from selenium.webdriver.support import expected_conditions as EC #wait for iframe
-import pandas as pd
-import time
+import pandas as pd #Manipulacao de dataframes
+import time #insere alguns sleeps para esperar a pagina carregar. Posteriormente, mudar para os Waits do selenium
 import re #regex para limpeza dos dados
-import unidecode
-import sys
-from pymongo import MongoClient
-
+import unidecode #limpeza e tratamento de dados
+import sys #mudança de WORKDIR
+from pymongo import MongoClient #Acesso ao banco de dados na nuvem
 from datetime import datetime #pegar dia e hora em que houve a extração
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.action_chains import ActionChains #Rolar a pagina até um determinado elemento
 
 def getListOfNewsLinksAdrenaline(driver):
     time.sleep(5)
-    #caminho unico para as noticias utilizando css selector
+    #caminho unico para as noticias de uma pagina Adrenaline(utilizando css selector)
     news_path = "article.post-h > div.row > div:nth-child(2) > a"
     links = []
     i = 1
-    #Quantidade de noticias
+    
     while len(links) < 150:
-        #encontra apenas os elementos que sao noticias
+        #encontra apenas os elementos que sao noticias e adiciona numa lista(list comprehension)
         elements = driver.find_elements_by_css_selector(news_path)
-        #retorna os links dos elementos utilizando list comprehension 
         links_current_page = [element.get_attribute('href') for element in elements]
-        #print("Iteracao: " + str(i))
-        #print("Quantidade de links: " + str(len(links)))
+        
+        #Rola a pagina pra baixo
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         
+        #Junta os links das diversas iteracoes
         links += links_current_page
         print("pagina i: " + str(i))
         print("quantidade links: " + str(len(links)))
         i += 1
+        #Pega a proxima pagina que contem mais noticias
         driver.get(driver.current_url[:-1] + str(i))
         time.sleep(3)
         
@@ -49,25 +49,19 @@ def getListOfNewsLinksGameVicio(driver):
     #caminho unico para as noticias utilizando css selector
     news_path = "[class *= 'news-list'] > div > div > a:nth-child(1)"
     links = []
-    #i = 0
-    #Quantidade de noticias
-    while len(links) < 50:
-        #encontra apenas os elementos que sao noticias
-        elements = driver.find_elements_by_css_selector(news_path)
-        #retorna os links dos elementos utilizando list comprehension 
-        links = [element.get_attribute('href') for element in elements]
-        #print("Iteracao: " + str(i))
-        #print("Quantidade de links: " + str(len(links)))
 
+    while len(links) < 50:
+        #encontra e retorna apenas os elementos que sao noticias(list comprehension )
+        elements = driver.find_elements_by_css_selector(news_path)
+        links = [element.get_attribute('href') for element in elements]
+        
         #Procura e clicka no botao para exibir mais links para ser raspado
-        actions = ActionChains(driver)
-        #btnLoadMorePages_element = driver.find_element_by_css_selector('#news-list-bt') 
+        actions = ActionChains(driver) 
         btnLoadMorePages_element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#news-list-bt')))
         actions.move_to_element(btnLoadMorePages_element).perform()
         btnLoadMorePages_element.click()
 
         time.sleep(2)
-        #i += 1
         
     return links, driver
 
@@ -76,31 +70,41 @@ def getListOfNewsLinksIGN(driver):
     #caminho unico para as noticias utilizando css selector
     news_path = "[class *= 'NEWS']"
     links = []
-    #i = 0
+    
     #Enquanto a quantidade links capturados for menor do que a quantidade
     # definida, role a pagina pra baixo para carregar mais links
     while len(links) < 50:
-        #encontra apenas os elementos que sao noticias
+        #encontra e retorna apenas os elementos que sao noticias(list comprehension)
         elements = driver.find_elements_by_css_selector(news_path)
-        #retorna os links dos elementos utilizando list comprehension 
         links = [element.find_elements_by_tag_name("a")[0].get_attribute('href') for element in elements]
-        #print("Iteracao: " + str(i))
-        #print("Quantidade de links: " + str(len(links)))
+        
+        #rola a pagina pra baixo pra carregar mais links
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         print("rolando a pagina da ign pra baixo")
         time.sleep(3)
-        #i += 1
         
     return links, driver
 
 def getCountComments(driver):
+    '''
+    Esta funcao retorna a quantidade de comentarios que um artigo possui.
+    Como os comentarios carregam de forma dinamica, é preciso rolar a pagina
+    pra baixo para que o sistema de comentarios fique visivel. Além disso, os
+    comentarios ficam em um iframe diferente do default, então é preciso procurar
+    pelo elemento em cada iframe da pagina. 
+    '''
+
     time.sleep(5)
+
     #Rola a pagina pra baixo para que o iframe dos comentarios seja gerado
+    #precisa rolar duas vezes, coloquei 3 por garantia, pois as vezes a pagina nao responde corretamente
     for i in range(3):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
     
+    #pega referencia de todos iframes da pagina
     totalFrames = driver.find_elements_by_tag_name("iframe")
+    #path, utilizando css selector, que tem a referencia da quantidade de comentarios
     countComments_path = "[class = 'publisher-nav-color'] > [class = 'comment-count']"
         
     #i = 0
@@ -124,7 +128,13 @@ def getCountComments(driver):
     return countComments, driver
 
 def scrapingData(driver, links, css_selector_paths, PAGE):
-    
+    '''
+    Funcao principal do programa. Recebe como parametro os links que serao raspados,
+    os paths dos elementos e uma constante PAGE que redireciona em alguns ifs.
+    Raspa: titulo, subtitulo, autor, data de publicacao, numero de comentarios e 
+    alguns metadados como data de extracao e url da pagina.
+
+    '''
     #cria uma lista vazia que recebera uma lista de dados a cada iteração
     listDataNews = []
     linkScrapedFailed = []
@@ -132,9 +142,7 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
     for link in links:
         time.sleep(5)
         try:
-            print('Da um get no link')
             driver.get(link)
-            print('linha depois do link')
             time.sleep(2)
             print('Link que esta sendo raspado: ' + link)
             
@@ -144,7 +152,6 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             #pega as informacoes do artigo
             
             #raspa e adiciona o Titulo do artigo
-            #title = driver.find_element_by_css_selector(css_selector_paths['title_path']).text
             if PAGE == 'news_gameVicio':
                 title = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['title_path']))).get_attribute('title')
             else:
@@ -153,13 +160,11 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             print("Raspou o titulo com sucesso \n")
                 
             #raspa e adiciona o SubTitulo do artigo
-            #subTitle = driver.find_element_by_css_selector(css_selector_paths['subTitle_path']).text
             subTitle = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['subTitle_path']))).text
             newsData.append(subTitle)
             print("Raspou o SubTitulo com sucesso \n")
             
             #raspa e adiciona o Autor do artigo
-            #author = driver.find_element_by_css_selector(css_selector_paths['author_path']).text
             author = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['author_path']))).text
             newsData.append(author)
             print("Raspou o Autor com sucesso \n")
@@ -167,10 +172,8 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
             
             #raspa e adiciona a data do artigo
             if PAGE == 'news_ign' or PAGE == 'news_adrenaline':
-                #date = driver.find_element_by_css_selector(css_selector_paths['date_path']).text
                 date = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['date_path']))).text
             elif PAGE == 'news_gameVicio':
-                #date = driver.find_element_by_css_selector(css_selector_paths['date_path']).get_attribute('title')
                 date = WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector_paths['date_path']))).get_attribute('title')
             
             newsData.append(date)
@@ -201,6 +204,10 @@ def scrapingData(driver, links, css_selector_paths, PAGE):
     return listDataNews, linkScrapedFailed, driver
 
 def returnOnlyNewLinks(links, PAGE):
+    '''
+    Estrategia de insercao de dados incremental.
+    Coloca apenas dados que nao estao na base(MongoDB)
+    '''
     
     #conecta com a base de dados na nuvem
     client = MongoClient('mongodb+srv://test:test@scrapingnews.uvlhs.mongodb.net/scraping_news?retryWrites=true&w=majority')
@@ -211,7 +218,8 @@ def returnOnlyNewLinks(links, PAGE):
       urls_base.append(url['URL'])
     
     linksToScrap = []
-    #percorra os links novos e verifica quais nao estao na base de dados
+    #percorre os links novos e verifica quais nao estao na base de dados
+    # retorna apenas os que nao estao
     for link in links:
         if link not in urls_base:
             linksToScrap.append(link)
@@ -219,6 +227,7 @@ def returnOnlyNewLinks(links, PAGE):
     return linksToScrap
 
 '''
+#Quando minha base de dados era utilizando csv, utilizava esta funcao abaixo para verificar
 def returnOnlyNewLinks(links, page):
 
     if page == 'IGN':
@@ -252,6 +261,9 @@ def replacePipe(df_news):
     return df_news
 
 def insertDataIntoMongo(data, PAGE):
+    '''
+    Recebe um dataframe como argumento e insere na base
+    '''
     client = MongoClient('mongodb+srv://test:test@scrapingnews.uvlhs.mongodb.net/scraping_news?retryWrites=true&w=majority')
     col = client['scraping_news'][PAGE]
     col.insert_many(data)

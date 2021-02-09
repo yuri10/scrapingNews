@@ -9,14 +9,6 @@ import functions as func
 import pandas as pd
 
 def mainIGN(driver):
-    """
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    options.add_argument("--disable-notifications")
-    options.add_argument("--headless")
-    driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
-    print("Driver iniciado com sucesso \n")
-    """
     driver.get('https://br.ign.com/')
     print("Requisicao para o site gameVicio com sucesso \n")
     

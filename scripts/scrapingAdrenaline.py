@@ -10,17 +10,7 @@ import functions as func
 import pandas as pd
 
 
-def mainAdrenaline(driver):
-    #logFile = open("C:\\Users\\yoliveira\\Desktop\\scrapingNews\\logs\\log_GameVicio.txt", 'w')
-    print("Inicio da execucao \n")
-    """
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    options.add_argument("--disable-notifications")
-    options.add_argument("--headless")
-    driver = webdriver.Remote("http://" + ip_docker_inspect_selenium + ":4444/wd/hub", DesiredCapabilities.CHROME, options = options)
-    print("Driver iniciado com sucesso \n")
-    """
+def mainAdrenaline(driver):  
     driver.get('https://adrenaline.com.br/noticias/pesquisa/todas/games/pagina/1')
     print("Requisicao para o site Adrenaline com sucesso \n")
     
@@ -79,8 +69,6 @@ def mainAdrenaline(driver):
     else:
         print("Nao existem dados para serem inseridos na base!")
     
-    #logFile.close()
-    #driver.close()
     print("Fim do programa Adrenaline")
     return driver
 
