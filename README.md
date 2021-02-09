@@ -25,7 +25,7 @@ $ sudo docker run -d -p 4444:4444 --network="selenium-app" --name selenium-3.141
 ~~~
 $ sudo docker inspect selenium-3.141.59
 ~~~
-#pegue o IPAddress e guarde-o para colocar no script mais pra frente
+**pegue o IPAddress e guarde-o para colocar no script mais pra frente**
 ~~~
 "IPAddress": "172.18.0.2"
 ~~~
@@ -51,9 +51,10 @@ $ sudo docker run --network="selenium-app" -e PYTHONUNBUFFERED=1 scraping-news
 ~~~
 
 
-* Caso não queria utilizar os containers, você precisará das seguintes bibliotecas para rodar o projeto (/scripts/app.py):
-*python 3.7 ou superior como base
-*pandas #manipulação de dataframes
-*selenium #raspagem dos dados
-*unidecode #tratamento e limpeza de dados
-*pymongo[srv] #conexao com o MongoDB - Atlas(cloud)
+# **Caso não queria utilizar os containers, você precisará das seguintes bibliotecas para rodar o projeto (/scripts/app.py):**
+* python 3.7 ou superior como base  
+* pandas #manipulação de dataframes   
+* selenium #raspagem dos dados  
+* google chrome driver e web-browser
+* unidecode #tratamento e limpeza de dados 
+* pymongo[srv] #conexao com o MongoDB - Atlas(cloud) 
