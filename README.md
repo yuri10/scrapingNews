@@ -1,5 +1,16 @@
 # scrapingNews
 
+O objetivo deste projeto é fazer o scraping de diversas noticias relacianadas ao mundo dos games. O script entra em cada uma das paginas e raspa as principais informações como: titulo, subtitulo, data de postagem, autor, metadados e outras informações adicionais como a quantidade de comentários(engajamento). A descrição e os objetivos do sistema foram todos especificados em um pdf que se encontra neste repositório: Engenharia_de_dados.pdf. Este projeto foi feito em uma seleção para Engenheiro de Dados na empresa Oncase. Para mais informações sobre a empresa, basta acessar o link: http://oncase.com.br/
+
+
+O projeto foi desenvolvido utilizando as seguintes tecnologias:
+* Python como linguagem de programação base
+* Selenium como ferramenta para recuperar os elementos da pagina
+* MongoDB hospedado na nuvem para armazenamento dos dados
+* Biblioteca pandas para manipular os dados
+* Docker para deixar a aplicação isolada e mais facil de ser migrada para um ambiente de produção
+
+
 Este projeto utiliza dois containers para fazer a raspagem das noticias. O primeiro é uma imagem do selenium-chrome e o outro é onde o script de scraping roda de fato. Neste segundo container, foi necessário instalar as bibliotecas: pandas(FROM amancevice/pandas), selenium(conexao remote), pymongo(Banco de Dados) e unidecode(tratamento nos dados).
 
 Estou com planos de, em futuras atualizacoes, fazer um docker compose com os dois containers, pois diminuiria bastante o trabalho de executar o script. Entretanto, já fiquei muito feliz de ter conseguido colocar minha aplicação dentro de um docker e fazer se comunicar com um banco na nuvem e outro container local, foi uma experiência incrível.
